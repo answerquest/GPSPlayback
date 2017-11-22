@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Hyderabad Bus GPS</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link net="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" href="lib/leaflet.css" rel="stylesheet" type="text/css" />
+    <link href="lib/vis.min.css" rel="stylesheet" type="text/css" /> 
+    <style>
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 120px;
+    }
+    #timeline { 
+        height: 120px; 
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+    #title_container {
+        z-index: 10000;
+        position: fixed;
+        left: 100px;
+        background-color: rgba(255,255,255,0.8);
+        padding: 10px;
+    }
+
+    body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+    h1 {
+        font-size: 24px;
+        font-weight: 400;
+        line-height: 1.1;
+    }
+
+    .datetimeControl p {
+        margin: 0;
+        font-size: 12px;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="title_container">
+        <h1>Hyderabad Bus GPS</h1>
+        <p>Click on a marker to see its details</p>
+    </div>
+<p><br><br><br><br><br><br><br><br><br>Please wait a minute or so for the page to load.</p>
+
+    <div id="map"></div>
+    <div id="timeline"></div>
+	
+    <script src="lib/jquery-1.11.0.js"></script>
+    <script src="lib/vis.min.js"></script>  
+    <script net="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet-src.js" src="lib/leaflet.js"></script>
+    <script src="lib/papaparse.js"></script> <!-- from https://papaparse.com -->
+
+
+    <script src="lib/LeafletPlayback.js"></script>
+
+
+<script>
+// Script adapted from https://github.com/hallahan/LeafletPlayback, example1.
+const buslimit = 150;
+csv2busJSON("hydgps.csv", plotbuses);
+
+function plotbuses(busjsons) {
+
+    // Setup leaflet map
+    var map = new L.Map('map', { closePopupOnClick: false } );
+
+	// Attributions
+	var osmLink = '<a href="https://openstreetmap.org">OpenStreetMap</a>';
+	var MBAttrib = 'Using <a href="https://github.com/hallahan/LeafletPlayback">Leaflet Playback</a>, &copy; ' + osmLink + ' Contributors & <a href="https://www.mapbox.com/about/maps/">Mapbox</a>';
+
+    var basemapLayer = new L.TileLayer('http://{s}.tiles.mapbox.com/v3/github.map-xgq2svrz/{z}/{x}/{y}.png', { attribution: MBAttrib } );
+
+    // Center map and default zoom level
+    map.setView([17.42281, 78.4545], 12); //Hyd
+
+    // Adds the background layer to the map
+    map.addLayer(basemapLayer);
+
+	// Timeline
+	var startTime = new Date(busjsons[0].properties.time[0]);
+    var endTime = new Date(busjsons[0].properties.time[ busjsons[0].properties.time.length - 1]);
+    var timelineData = new vis.DataSet([{ start: startTime, end: endTime, content: 'Hyd GPS Tracks' }]);
+	console.log('startTime: '+startTime+ ' ; endTime : '+endTime)
+
+    // Set timeline options
+    var timelineOptions = {
+      "width":  "100%",
+      "height": "120px",
+      "style": "box",
+      "axisOnTop": true,
+      "showCustomTime":true
+    };
+    // Setup timeline
+    var timeline = new vis.Timeline(document.getElementById('timeline'), timelineData, timelineOptions);
+        
+    // Set custom time marker (blue)
+    timeline.setCustomTime(startTime);
+
+    // =====================================================
+    // =============== Playback ============================
+    // =====================================================
+    
+    // Playback options
+	var playbackOptions = {
+        playControl: true,
+        dateControl: true,
+        //sliderControl: true,
+        tickLen: 500,
+        popups: true,
+        marker: { 
+            getPopup: function(featureData) {
+                var result = '';
+                
+                if (featureData && featureData.properties && featureData.properties.name) {
+                    result = featureData.properties.name;
+                }
+                
+                return result;
+            }
+        }     
+    };
+        
+    // Initialize playback
+    var playback = new L.Playback(map, busjsons, onPlaybackTimeChange, playbackOptions);   
+    
+    // Set timeline time change event, so cursor is set after moving custom time (blue)
+    timeline.on('timechange', onCustomTimeChange);    
+
+    // A callback so timeline is set after changing playback time
+    function onPlaybackTimeChange (ms) {
+        timeline.setCustomTime(new Date(ms));
+    };
+    
+    // 
+    function onCustomTimeChange(properties) {
+        if (!playback.isPlaying()) {
+            playback.setCursor(properties.time.getTime());
+        }        
+    }       
+
+} // end of function plotbuses(busjsons)
+
+//#############################################################
+
+// The function that converts the CSV into array of jsons per bus:
+function csv2busJSON(csvfile, triggerfunc) {
+
+Papa.parse(csvfile, {
+	download: true,
+	header: true,
+//	preview: 1000, // limit number of lines
+	skipEmptyLines: true,
+	complete: function(results) {
+		// for getting the unique ids list, need to unparse the json data back to csv and reparse it in array mode instead of json mode
+		var results2 = Papa.parse( Papa.unparse(results.data) );
+			
+		var buslist = uniqueArray( transpose(results2.data)[0] ).slice(0, buslimit+1) ; // extracting the id or other column, unique values only
+		// Use index:  0: id, or 3: vehicle, or 5: busnum
+		console.log("Unique " + buslist[0] + "'s: " + JSON.stringify(buslist) );
+		
+		var busjsons = [];
+		for( i = 1; i < buslist.length; i++) {
+			var singlebus = results.data.filter( function(data){ return data[ buslist[0] ] ==  buslist[i] ; } );
+			//console.log( JSON.stringify(singlebus[0]) );
+			
+			busjsons[i-1] = {
+				type: 'Feature',
+				geometry: {
+				  type: 'MultiPoint',
+				  coordinates: []
+				},
+				properties: {
+				  name: '', // this will go in popup, so set it as busnum or whatever.
+				  time: [],
+				  id: '',
+				  vehicle: '',
+				  busnum: '',
+				  bustype: '',
+				  status: [],
+				  time2: [],
+				  col: [],
+				  detail: [],
+				}//,
+				//bbox: []
+			};
+			
+			for( j=0; j < singlebus.length; j++ ) {
+				
+				let lat = parseFloat( singlebus[j].latitude );
+				let lng = parseFloat( singlebus[j].longitude );
+				busjsons[i-1].geometry.coordinates.push([lng,lat]);
+
+				let timeStr = singlebus[j]['time'];
+				let t = new Date(timeStr);
+				busjsons[i-1].properties.time.push(t.getTime());
+				
+				if( j==0) { // set constant properties as the first entry
+					busjsons[i-1].properties.id = singlebus[0].id;
+					busjsons[i-1].properties.vehicle = singlebus[0].vehicle;
+					busjsons[i-1].properties.busnum = singlebus[0].busnum;
+					busjsons[i-1].properties.bustype = singlebus[0].bustype;
+				}
+				
+				// setting popup text:
+					busjsons[i-1].properties.name = singlebus[0].busnum + ": Vehicle no." + singlebus[0].vehicle + ', type: ' + singlebus[0].bustype + '<br>detail: ' + singlebus[j].detail + '<br>status: ' + singlebus[j].status;
+					
+				// other variables we can also push to the json as arrays:
+				// omitting them out for now
+				//busjsons[i-1].properties.status.push( singlebus[j].status );
+				//busjsons[i-1].properties.col.push( singlebus[j].col );
+				//busjsons[i-1].properties.detail.push( singlebus[j].detail );
+				//busjsons[i-1].properties.time2.push( singlebus[j].time2 );
+				
+			} // end of j loop
+			//console.log( busjsons[i-1].properties.busnum );
+
+		} // end of i loop
+		console.log( "Total buses loaded: ", busjsons.length );
+		triggerfunc(busjsons); // end the function call by passing the bus jsons created to the next function.
+
+	} // end of complete function
+}); // end of papa.parse
+
+} // end of csv2busJSON
+
+
+// supporting functions:
+
+function transpose(a) {
+	// from from https://stackoverflow.com/a/13241545/4355695
+    return Object.keys(a[0]).map(function(c) {
+        return a.map(function(r) { return r[c]; });
+    });
+}
+
+function uniqueArray( ar ) {
+	// from https://stackoverflow.com/a/29327129/4355695
+  var j = {};
+  ar.forEach( function(v) {
+    j[v+ '::' + typeof v] = v;
+  });
+  return Object.keys(j).map(function(v){
+    return j[v];
+  });
+}   
+
+</script>
+</body>
+</html>
