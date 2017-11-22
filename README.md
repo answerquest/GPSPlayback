@@ -1,5 +1,5 @@
 # GPS Playback
-playback of GPS bus records using Leaflet Playback
+A proof-of-concept for playback of GPS bus records on a map.
 
 See it live: <https://answerquest.github.io/GPSPlayback/>
 
