@@ -16,3 +16,7 @@ Note: Limiting the total number of buses being loaded to 150; my page was crashi
 Data received from Srinivas, Hyderabad.<br>
 Code by Nikhil, Pune.<br>
 both from DataMeet Community, http://datameet.org
+
+Do you have GPS data you want to visualize? Contact Nikhil on nikhil.js [at] gmail.com .
+
+Like this work? Want to see more of it? [Click here to contribute!](https://www.instamojo.com/@nikhilvj/)
