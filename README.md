@@ -3,7 +3,7 @@ A proof-of-concept for playback of archived GPS bus records on a map.
 
 See it live: <https://answerquest.github.io/GPSPlayback/>
 
-![screenshot](https://i.imgur.com/TaJOrnf.png)
+![screenshot](https://i.imgur.com/0ba0slX.png)
 
 Sample data from Hyderabad Bus GPS data.
 
