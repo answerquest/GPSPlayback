@@ -25,8 +25,8 @@
     #title_container {
         z-index: 10000;
         position: fixed;
-        left: 100px;
-        background-color: rgba(255,255,255,0.8);
+        left: 60px;
+        background-color: rgba(225,225,0,0.8);
         padding: 10px;
     }
 
@@ -35,7 +35,7 @@
         }
 
     h1 {
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 400;
         line-height: 1.1;
     }
@@ -51,7 +51,7 @@
 <body>
 <div id="title_container">
 <h1>Hyderabad Bus GPS</h1>
-<p>Click on a marker to see that bus's details.<br><a href="https://github.com/answerquest/GPSPlayback/">See the code on Github.</a></p>
+<small>Click on a marker to see that bus's details.<br><a href="https://github.com/answerquest/GPSPlayback/">See the code on Github.</a></small>
 </div>
 <p><br><br><br><br><br><br><br><br>Loading a large CSV dataset. Please wait a minute or so for the page to load.</p>
 
@@ -66,8 +66,9 @@
 
 <script>
 // Script adapted from https://github.com/hallahan/LeafletPlayback, example1.
-const buslimit = 150;
+const buslimit = 200;
 csv2busJSON("hydgps.csv", plotbuses);
+
 
 function plotbuses(busjsons) {
 	// Setup leaflet map
@@ -105,6 +106,15 @@ function plotbuses(busjsons) {
 	var timeline = new vis.Timeline(document.getElementById('timeline'), timelineData, timelineOptions);
 	// Set custom time marker (blue)
 	timeline.setCustomTime(startTime);
+	
+	// Set icon
+	var smallIcon = new L.Icon({
+		iconSize: [13, 16],
+		iconAnchor: [6, 8],
+		popupAnchor:  [0, -10],
+		iconUrl: 'lib/images/bus-map.png'
+	});
+
 	// =====================================================
 	// =============== Playback ============================
 	// =====================================================
@@ -122,8 +132,21 @@ function plotbuses(busjsons) {
 					result = featureData.properties.name;
 				}
 				return result;
+			},
+			icon: smallIcon
+		}/*,
+		layer: {
+			pointToLayer: function (feature, latlng) {                    
+				return L.circleMarker(latlng, {
+					radius: 5,
+					fillColor: "yellow",
+					color: "black",
+					weight: 1,
+					opacity: 1,
+					fillOpacity: 0.8
+				});
 			}
-		}
+		}*/
 	};
 	// Initialize playback
 	var playback = new L.Playback(map, busjsons, onPlaybackTimeChange, playbackOptions);
