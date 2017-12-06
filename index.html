@@ -7,53 +7,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link net="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" href="lib/leaflet.css" rel="stylesheet" type="text/css" />
     <link href="lib/vis.min.css" rel="stylesheet" type="text/css" /> 
-    <style>
-    #map {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 120px;
-    }
-    #timeline { 
-        height: 120px; 
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-    }
-    #title_container {
-        z-index: 10000;
-        position: fixed;
-        left: 60px;
-        background-color: rgba(225,225,0,0.8);
-        padding: 10px;
-    }
-
-    body {
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        }
-
-    h1 {
-        font-size: 20px;
-        font-weight: 400;
-        line-height: 1.1;
-    }
-
-    .datetimeControl p {
-        margin: 0;
-        font-size: 12px;
-    }
+<style>
+#map {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 120px;
+}
+#timeline { 
+	height: 120px; 
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+body {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.datetimeControl p {
+	margin: 0;
+	font-size: 12px;
+}
+#title_container {
+	z-index: 10000;
+	position: fixed;
+	background-color: rgba(0,0,0,0.7);
+	color: white;
+	padding: 5px;
+	left: 10px;
+	top: 100px;
+}
+#title_container a:link, #title_container a:visited {
+	color: silver;
+}
 
     </style>
 </head>
 
 <body>
 <div id="title_container">
-<h1>Hyderabad Bus GPS</h1>
-<small>Click on a marker to see that bus's details.<br><a href="https://github.com/answerquest/GPSPlayback/">See the code on Github.</a></small>
+<big>Hyderabad Bus GPS</big><br>
+<small>Click on a marker to see that bus's details.<br><a href="https://github.com/answerquest/GPSPlayback/">Source code</a> | <a href="http://datameet.org">Datameet</a>
+<br>
+By <a href="http://nikhilvj.cu.cc">Nikhil VJ</a> | <a href="https://www.instamojo.com/@nikhilvj/">Contribute</a></small>
 </div>
-<p><br><br><br><br><br><br><br><br>Loading a large CSV dataset. Please wait a minute or so for the page to load.</p>
+<p><br>Loading a large CSV dataset. Please wait a minute or so for the page to load.</p>
 
 <div id="map"></div>
 <div id="timeline"></div>
