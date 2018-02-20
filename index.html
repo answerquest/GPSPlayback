@@ -42,6 +42,11 @@ body {
 	color: silver;
 }
 
+.bus-div-icon {
+	background-color: rgba(0,0,0,0.4);
+	border-radius: 50%;
+}
+
     </style>
 </head>
 
@@ -52,7 +57,7 @@ body {
 <br>
 By <a href="http://nikhilvj.cu.cc">Nikhil VJ</a> | <a href="https://www.instamojo.com/@nikhilvj/">Contribute</a></small>
 </div>
-<p><br>Loading a large CSV dataset. Please wait a minute or so for the page to load.</p>
+<p id="loadertext"><br>Loading a large CSV dataset. Please wait a minute or so for the page to load.</p>
 
 <div id="map"></div>
 <div id="timeline"></div>
@@ -65,7 +70,7 @@ By <a href="http://nikhilvj.cu.cc">Nikhil VJ</a> | <a href="https://www.instamoj
 
 <script>
 // Script adapted from https://github.com/hallahan/LeafletPlayback, example1.
-const buslimit = 200;
+const buslimit = 300;
 csv2busJSON("hydgps.csv", plotbuses);
 
 
@@ -84,6 +89,9 @@ function plotbuses(busjsons) {
 	map.setView([17.42281, 78.4545], 12); //Hyd
 	// Adds the background layer to the map
 	map.addLayer(basemapLayer);
+
+	var myRenderer = L.canvas({ padding: 0.5 }); // from https://stackoverflow.com/a/43019740/4355695 : A way to enable adding more points without crashing the browser. Will be useful in future if number of markers is above 500, 1000 or so.
+
 	// Timeline
 	var startTime = new Date(busjsons[0].properties.time[0]);
 	var endTime = new Date(busjsons[0].properties.time[busjsons[0].properties.time.length - 1]);
@@ -114,6 +122,18 @@ function plotbuses(busjsons) {
 		iconUrl: 'lib/images/bus-map.png'
 	});
 
+	var busIcon = L.divIcon({className: 'bus-div-icon'});
+
+	var circleMarkerOptions = {
+		renderer: myRenderer,
+		radius: 3,
+		fillColor: "#00B7F3",
+		color: null,
+		weight: 0,
+		opacity: 0,
+		fillOpacity: 0.5
+	};
+
 	// =====================================================
 	// =============== Playback ============================
 	// =====================================================
@@ -125,15 +145,22 @@ function plotbuses(busjsons) {
 		tickLen: 500,
 		popups: true,
 		marker: {
+			//icon: smallIcon
+			icon: busIcon,
+
 			getPopup: function(featureData) {
 				var result = '';
 				if (featureData && featureData.properties && featureData.properties.name) {
 					result = featureData.properties.name;
 				}
 				return result;
-			},
-			icon: smallIcon
-		}
+			}
+		},
+		layer: { // this sets the GPS tracks, using circleMarkerOptions here that works on renderer which should decrease load on processor/ram.
+            pointToLayer : function(featureData, latlng){
+				return new L.CircleMarker(latlng, circleMarkerOptions);
+            }
+        },
 	};
 	// Initialize playback
 	var playback = new L.Playback(map, busjsons, onPlaybackTimeChange, playbackOptions);
@@ -171,6 +198,7 @@ function csv2busJSON(csvfile, triggerfunc) {
 			var busjsons = [];
 			// cycling through each bus. Starting with 1 as 0 is the index var name.
 			for (i = 1; i < buslist.length; i++) { 
+
 				// this filter function reduces the large csv data down to just the lines corresponding to that bus
 				var singlebus = results.data.filter(function(data) {
 					return data[buslist[0]] == buslist[i]; 
@@ -221,7 +249,7 @@ function csv2busJSON(csvfile, triggerfunc) {
 					//busjsons[i-1].properties.status.push( singlebus[j].status );
 					//busjsons[i-1].properties.col.push( singlebus[j].col );
 					//busjsons[i-1].properties.detail.push( singlebus[j].detail );
-					//busjsons[i-1].properties.time2.push( singlebus[j].time2 );
+					//busjsons[i-1].p/youtube titles data from URLs.htmlroperties.time2.push( singlebus[j].time2 );
 				} // end of j loop
 			} // end of i loop
 			console.log("Total buses loaded: ", busjsons.length);
